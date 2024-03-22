@@ -1,0 +1,26 @@
+name: "snyk test delta"
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: snyk/actions/setup@master
+      - run: npm i -g snyk-delta
+      - name: Snyk Test
+        run: snyk test --json-file-output=results.json
+        continue-on-error: true
+        env:
+           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Snyk Delta
+        run: snyk test --json --print-deps | snyk-delta -d
+        env:
+           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Snyk Monitor
+        run: snyk monitor
+        env:
+           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      #name: Upload SARIF file
+        #uses: github/codeql-action/upload-sarif@v2
+        #with:
+         # sarif_file: snyk-sarif1.json
